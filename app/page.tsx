@@ -276,8 +276,8 @@ export default function Home() {
   }, [lang])
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000)
-    return () => clearTimeout(timer)
+    // Retrait total du délai artificiel de chargement
+    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -337,18 +337,7 @@ export default function Home() {
     return matchesSearch && matchesCategory && matchesOccasion
   })
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-[#0A0A0A] z-[100] flex flex-col items-center justify-center">
-        <h1 className="text-4xl font-bold tracking-[0.3em] text-[#C9A227] mb-8 animate-pulse" style={{ fontFamily: 'Cinzel, serif' }}>
-          LUXURY MAGIQUE
-        </h1>
-        <div className="w-48 h-[1px] bg-white/20 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[#C9A227] animate-[loading_2s_ease-in-out_infinite]"></div>
-        </div>
-      </div>
-    )
-  }
+
 
   return (
     <div className={`min-h-screen bg-white text-gray-900 ${lang === 'ar' ? 'font-arabic' : ''}`} style={{ scrollBehavior: 'smooth' }}>
@@ -356,7 +345,7 @@ export default function Home() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'bg-white shadow-xl py-4' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
           <a href="#" className="text-2xl md:text-3xl font-bold tracking-[0.2em]" style={{ fontFamily: 'Cinzel, serif', color: isScrolled ? '#C9A227' : '#C9A227' }}>
-            LUXURY MAGIQUE
+            LUXURY PARFUM
           </a>
 
           <div className="hidden lg:flex gap-8 items-center">
@@ -580,7 +569,7 @@ export default function Home() {
       {/* ===== FOOTER ===== */}
       <footer className="bg-[#0A0A0A] text-white py-16 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h3 className="text-2xl font-bold text-[#C9A227] mb-6 tracking-widest" style={{ fontFamily: 'Cinzel, serif' }}>LUXURY MAGIQUE</h3>
+          <h3 className="text-2xl font-bold text-[#C9A227] mb-6 tracking-widest" style={{ fontFamily: 'Cinzel, serif' }}>LUXURY PARFUM</h3>
           <p className="text-gray-500 max-w-md mx-auto mb-10">{t.footerDesc}</p>
           <div className="flex justify-center gap-8 mb-12">
             {['Collections', 'About', 'Cart'].map(l => <a key={l} href="#" className="text-gray-400 hover:text-white transition-all text-sm uppercase tracking-widest">{l}</a>)}

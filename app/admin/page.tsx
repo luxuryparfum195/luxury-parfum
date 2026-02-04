@@ -1,6 +1,24 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+import {
+  LayoutDashboard,
+  Package,
+  PlusCircle,
+  Settings as SettingsIcon,
+  LogOut,
+  TrendingUp,
+  Users,
+  DollarSign,
+  Search,
+  CheckCircle2,
+  Image as ImageIcon,
+  X,
+  Trash2,
+  Edit2
+} from 'lucide-react'
+
 
 // Mock Data
 const categories = ['Homme', 'Femme', 'Unisexe']
@@ -81,14 +99,331 @@ export default function AdminDashboard() {
 
   // ... (rest of the existing state and functions: stats, handleImageUpload, removeImage, handleSaveProduct, renderSidebar)
 
-  const handleLogin = (e: React.FormEvent) => {
+  // auth session
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) setIsAuthenticated(true)
+    }
+    checkUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (loginForm.user === 'Amir2026' && loginForm.pass === 'Amir2026') {
-      setIsAuthenticated(true)
-    } else {
-      setLoginError('Identifiants incorrects')
+    setLoginError('')
+
+    // Tentative de connexion Supabase
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginForm.user.includes('@') ? loginForm.user : `${loginForm.user}@luxurymagique.fr`,
+      password: loginForm.pass
+    })
+
+    if (error) {
+      // Fallback temporaire pour le dev
+      if (loginForm.user === 'Amir2026' && loginForm.pass === 'Amir2026') {
+        setIsAuthenticated(true)
+      } else {
+        setLoginError(error.message === 'Invalid login credentials' ? 'Identifiants incorrects' : error.message)
+      }
     }
   }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setIsAuthenticated(false)
+  }
+
+  const stats = [
+    { title: 'Ventes Totales', value: '1,280 €', icon: DollarSign, color: 'bg-green-50 text-green-600' },
+    { title: 'Nouveaux Clients', value: '+12', icon: Users, color: 'bg-blue-50 text-blue-600' },
+    { title: 'Top Produit', value: 'Nuit de Diamant', icon: TrendingUp, color: 'bg-orange-50 text-orange-600' },
+    { title: 'Stock Critique', value: '3', icon: Package, color: 'bg-red-50 text-red-600' },
+  ]
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setForm({ ...form, photos: [...form.photos, event.target.result as string] })
+        }
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeImage = (index: number) => {
+    const newPhotos = [...form.photos]
+    newPhotos.splice(index, 1)
+    setForm({ ...form, photos: newPhotos })
+  }
+
+  const handleSaveProduct = () => {
+    alert('Produit sauvegardé !')
+    setActiveTab('products')
+  }
+
+  const renderSidebar = () => (
+    <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-100 p-6 flex flex-col z-50">
+      <div className="mb-10 px-2">
+        <h1 className="text-2xl font-bold tracking-widest text-luxury-gold" style={{ fontFamily: 'Cinzel, serif' }}>LUXURY</h1>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold">Admin Panel</p>
+      </div>
+
+      <nav className="flex-1 space-y-1">
+        {[
+          { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+          { id: 'products', label: 'Produits', icon: Package },
+          { id: 'add', label: 'Ajouter', icon: PlusCircle },
+          { id: 'settings', label: 'Paramètres', icon: SettingsIcon },
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === item.id
+                ? 'bg-black text-white shadow-lg'
+                : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+              }`}
+          >
+            <item.icon className="w-5 h-5" />
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <button
+        onClick={handleLogout}
+        className="mt-auto flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
+      >
+        <LogOut className="w-5 h-5" />
+        Déconnexion
+      </button>
+    </div>
+  )
+
+  const renderHeader = () => (
+    <header className="fixed top-0 left-64 right-0 h-20 bg-white/80 backdrop-blur-md border-b border-gray-100 z-40 px-8 flex items-center justify-between">
+      <div className="relative w-96">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Rechercher..."
+          className="w-full bg-gray-50 border-none rounded-full py-2.5 pl-11 pr-4 text-sm focus:ring-2 focus:ring-luxury-gold transition-all"
+        />
+      </div>
+
+      <div className="flex items-center gap-4">
+        <div className="text-right">
+          <p className="text-sm font-bold text-gray-800">Amir</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Administrateur</p>
+        </div>
+        <div className="w-10 h-10 rounded-full bg-luxury-gold flex items-center justify-center text-white font-bold">A</div>
+      </div>
+    </header>
+  )
+
+  const renderDashboard = () => (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, i) => (
+          <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-gray-50">
+            <div className="flex justify-between items-start mb-4">
+              <div className={`p-3 rounded-2xl ${stat.color}`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <span className="text-green-500 text-xs font-bold">+12%</span>
+            </div>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{stat.title}</p>
+            <p className="text-2xl font-bold text-gray-800 mt-1">{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-50">
+          <h3 className="text-xl font-bold mb-6" style={{ fontFamily: 'Cinzel, serif' }}>Ventes Récentes</h3>
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gray-200 rounded-xl overflow-hidden">
+                    <img src={initialPerfumes[i - 1].image} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm">Vente #{1024 + i}</p>
+                    <p className="text-xs text-gray-400">{initialPerfumes[i - 1].nom}</p>
+                  </div>
+                </div>
+                <p className="font-bold text-luxury-gold">250 €</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-50 text-center">
+          <h3 className="text-xl font-bold mb-6" style={{ fontFamily: 'Cinzel, serif' }}>Stock Global</h3>
+          <div className="relative w-40 h-40 mx-auto mb-6">
+            <svg className="w-full h-full" viewBox="0 0 36 36">
+              <path className="text-gray-100" strokeDasharray="100, 100" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="currentColor" />
+              <path className="text-luxury-gold" strokeDasharray="75, 100" strokeWidth="3" strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="currentColor" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <p className="text-3xl font-bold">75%</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase">Capacité</p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 mb-6">Le stock est à un niveau optimal pour cette saison.</p>
+          <button className="w-full py-3 bg-gray-100 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-200 transition-all">Gérer l'inventaire</button>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderProducts = () => (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <table className="w-full text-left">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-400">Produit</th>
+              <th className="px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-400">Catégorie</th>
+              <th className="px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-400">Prix</th>
+              <th className="px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-400">Statut</th>
+              <th className="px-8 py-5 text-xs font-bold uppercase tracking-widest text-gray-400">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {perfumes.map((p) => (
+              <tr key={p.id} className="hover:bg-gray-50/50 transition-all">
+                <td className="px-8 py-6">
+                  <div className="flex items-center gap-4">
+                    <img src={p.image} className="w-12 h-12 rounded-xl object-cover" />
+                    <p className="font-bold text-gray-800">{p.nom}</p>
+                  </div>
+                </td>
+                <td className="px-8 py-6 text-sm text-gray-500">{p.categorie}</td>
+                <td className="px-8 py-6 font-bold text-gray-800">{p.prix} €</td>
+                <td className="px-8 py-6">
+                  <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-bold uppercase rounded-full">
+                    {p.statut}
+                  </span>
+                </td>
+                <td className="px-8 py-6 text-right">
+                  <div className="flex items-center gap-2">
+                    <button className="p-2 text-gray-400 hover:text-luxury-gold transition-all"><Edit2 className="w-4 h-4" /></button>
+                    <button className="p-2 text-gray-400 hover:text-red-500 transition-all"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+
+  const renderAddProduct = () => (
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6">
+            <h3 className="text-xl font-bold" style={{ fontFamily: 'Cinzel, serif' }}>Informations Générales</h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Nom du parfum</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-luxury-gold transition-all"
+                  value={form.nom}
+                  onChange={e => setForm({ ...form, nom: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Catégorie</label>
+                  <select
+                    className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-luxury-gold transition-all"
+                    value={form.categorie}
+                    onChange={e => setForm({ ...form, categorie: e.target.value })}
+                  >
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Prix (€)</label>
+                  <input
+                    type="number"
+                    className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-luxury-gold transition-all"
+                    value={form.prix}
+                    onChange={e => setForm({ ...form, prix: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Description</label>
+                <textarea
+                  rows={4}
+                  className="w-full px-4 py-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-luxury-gold transition-all"
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6">
+            <h3 className="text-xl font-bold text-luxury-gold" style={{ fontFamily: 'Cinzel, serif' }}>Médias</h3>
+            <div className="space-y-4">
+              <div
+                className="w-full aspect-[3/4] bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-luxury-gold transition-all overflow-hidden relative group"
+                onClick={() => document.getElementById('image-upload')?.click()}
+              >
+                {form.photos[0] ? (
+                  <img src={form.photos[0]} className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <ImageIcon className="w-8 h-8 text-gray-300 mb-2" />
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Ajouter une photo</p>
+                  </>
+                )}
+                <input type="file" id="image-upload" hidden onChange={handleImageUpload} />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {form.photos.map((img, i) => (
+                  <div key={i} className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative group">
+                    <img src={img} className="w-full h-full object-cover" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeImage(i) }}
+                      className="absolute top-1 right-1 bg-white text-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all shadow-md"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSaveProduct}
+            className="w-full bg-black text-white py-5 rounded-2xl font-bold uppercase tracking-[0.2em] shadow-xl hover:bg-luxury-gold transition-all flex items-center justify-center gap-3"
+          >
+            <CheckCircle2 className="w-5 h-5" />
+            Publier
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
 
   if (!isAuthenticated) {
     return (
@@ -127,7 +462,7 @@ export default function AdminDashboard() {
     )
   }
 
-  // ... (renderSidebar)
+
 
   const renderCurrentTab = () => {
     switch (activeTab) {
