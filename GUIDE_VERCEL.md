@@ -130,4 +130,4 @@ Votre boutique de parfums de luxe est maintenant en ligne ! 🚀
 
 ---
 
-*Dernière mise à jour : 4 Février 2026*
+*Dernière mise à jour : 4 Février 2026 - Build Fix*
