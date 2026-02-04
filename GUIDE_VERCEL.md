@@ -116,7 +116,7 @@ Vous devez configurer les DNS manuellement :
 
 ## 📞 Informations de connexion Admin
 
-- **URL Admin** : `https://votre-domaine.com/admin`
+- **URL Admin** : `https://votre-domaine.com/Amir-admin`
 - **Utilisateur** : `Amir2026`
 - **Mot de passe** : `Amir2026`
 

@@ -488,8 +488,11 @@ export default function AdminDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center p-4">
         <div className="bg-white p-10 rounded-3xl w-full max-w-md space-y-8 shadow-2xl">
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-widest text-[#C9A227] mb-2" style={{ fontFamily: 'Cinzel, serif' }}>LUXURY</h1>
-            <p className="text-xs uppercase tracking-[0.3em] text-gray-400 font-bold">Administration</p>
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#C9A227] to-[#8B6914] flex items-center justify-center">
+              <span className="text-white text-2xl font-bold" style={{ fontFamily: 'Cinzel, serif' }}>A</span>
+            </div>
+            <h1 className="text-3xl font-bold tracking-widest text-[#C9A227] mb-2" style={{ fontFamily: 'Cinzel, serif' }}>AMIR ADMIN</h1>
+            <p className="text-xs uppercase tracking-[0.3em] text-gray-400 font-bold">Panneau d'Administration</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -555,7 +558,12 @@ export default function AdminDashboard() {
   const renderSidebar = () => (
     <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-100 p-6 flex flex-col z-50 shadow-xl">
       <div className="mb-10 px-2">
-        <h1 className="text-2xl font-bold tracking-widest text-[#C9A227]" style={{ fontFamily: 'Cinzel, serif' }}>LUXURY</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#C9A227] to-[#8B6914] flex items-center justify-center">
+            <span className="text-white text-lg font-bold" style={{ fontFamily: 'Cinzel, serif' }}>A</span>
+          </div>
+          <h1 className="text-xl font-bold tracking-widest text-[#C9A227]" style={{ fontFamily: 'Cinzel, serif' }}>AMIR</h1>
+        </div>
         <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold">Admin Panel</p>
       </div>
 
