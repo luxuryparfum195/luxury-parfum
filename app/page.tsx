@@ -210,11 +210,11 @@ export default function Home() {
   const aboutT = aboutTexts[lang]
   const heroRef = useRef<HTMLElement>(null)
 
-  // Auto-slide toutes les 2.5 secondes
+  // Auto-slide toutes les 4 secondes
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
-    }, 2500)
+    }, 4000)
     return () => clearInterval(interval)
   }, [])
 
@@ -433,60 +433,56 @@ export default function Home() {
 
         {/* Contenu du Hero */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center w-full pt-20">
-          {/* Texte du Hero animé */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`text-${currentSlide}`}
-              initial={{ opacity: 0, x: lang === 'ar' ? 50 : -50, y: 20 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              exit={{ opacity: 0, x: lang === 'ar' ? -50 : 50, y: -20 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className={`${lang === 'ar' ? 'lg:text-right' : 'lg:text-left'} text-center`}
+          {/* Texte du Hero - Immobile */}
+          <motion.div
+            initial={{ opacity: 0, x: lang === 'ar' ? 50 : -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className={`${lang === 'ar' ? 'lg:text-right' : 'lg:text-left'} text-center`}
+          >
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-[#C9A227] text-lg tracking-[0.3em] mb-6 uppercase font-bold"
             >
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-[#C9A227] text-lg tracking-[0.3em] mb-6 uppercase font-bold"
+              {heroText.subtitle}
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-5xl md:text-7xl font-bold text-white mb-8"
+              style={{ fontFamily: 'Cinzel, serif' }}
+            >
+              {heroText.title_line1}
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                className="block text-[#C9A227] mt-2"
               >
-                {heroText.subtitle}
-              </motion.p>
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-5xl md:text-7xl font-bold text-white mb-8"
-                style={{ fontFamily: 'Cinzel, serif' }}
-              >
-                {heroText.title_line1}
-                <motion.span
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-                  className="block text-[#C9A227] mt-2"
-                >
-                  {heroText.title_highlight}
-                </motion.span>
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="text-gray-200 text-lg max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed"
-              >
-                {heroText.description}
-              </motion.p>
-              <motion.a
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                href="#collections"
-                className="inline-block bg-[#C9A227] text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-[#8B6914] hover:scale-105 transition-all shadow-2xl shadow-[#C9A227]/30"
-              >
-                {heroText.button_text}
-              </motion.a>
-            </motion.div>
-          </AnimatePresence>
+                {heroText.title_highlight}
+              </motion.span>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-gray-200 text-lg max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed"
+            >
+              {heroText.description}
+            </motion.p>
+            <motion.a
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              href="#collections"
+              className="inline-block bg-[#C9A227] text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-[#8B6914] hover:scale-105 transition-all shadow-2xl shadow-[#C9A227]/30"
+            >
+              {heroText.button_text}
+            </motion.a>
+          </motion.div>
 
           {/* 3 Parfums avec animations au survol */}
           <div className="hidden lg:flex justify-center items-center gap-6">
