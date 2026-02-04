@@ -99,7 +99,7 @@ const translations = {
     discover: 'Découvrir la Collection',
     search: 'Rechercher',
     excellenceTitle: "L'Excellence de la Parfumerie",
-    historyDesc1: "Fondée sur les principes de l'artisanat français, LUXURY MAGIQUE représente l'apogée de la parfumerie de luxe. Chaque fragrance est composée avec des ingrédients rares sourcés des quatre coins du monde.",
+    historyDesc1: "Fondée sur les principes de l'artisanat français, LUXURY PARFUM représente l'apogée de la parfumerie de luxe. Chaque fragrance est composée avec des ingrédients rares sourcés des quatre coins du monde.",
     historyDesc2: "Notre philosophie unique vous permet d'acheter au millilitre, découvrant ainsi l'essence pure du luxe sans compromis.",
     yearsExcellence: "Années d'Excellence",
     fragrances: 'Fragrances',
@@ -142,7 +142,7 @@ const translations = {
     discover: 'Discover Collection',
     search: 'Search',
     excellenceTitle: "The Excellence of Perfumery",
-    historyDesc1: "Founded on the principles of French craftsmanship, LUXURY MAGIQUE represents the pinnacle of luxury perfumery. Each fragrance is composed of rare ingredients sourced from around the world.",
+    historyDesc1: "Founded on the principles of French craftsmanship, LUXURY PARFUM represents the pinnacle of luxury perfumery. Each fragrance is composed of rare ingredients sourced from around the world.",
     historyDesc2: "Our unique philosophy allows you to buy by the milliliter, discovering the pure essence of luxury without compromise.",
     yearsExcellence: "Years of Excellence",
     fragrances: 'Fragrances',
@@ -185,7 +185,7 @@ const translations = {
     discover: 'اكتشف المجموعة',
     search: 'بحث',
     excellenceTitle: 'التميز في صناعة العطور',
-    historyDesc1: 'تأسست لوكجري ماجيك على مبادئ الحرفية الفرنسية، وتمثل قمة صناعة العطور الفاخرة. يتكون كل عطر من مكونات نادرة مستوردة من جميع أنحاء العالم.',
+    historyDesc1: 'تأسست لوكجري بارفيوم على مبادئ الحرفية الفرنسية، وتمثل قمة صناعة العطور الفاخرة. يتكون كل عطر من مكونات نادرة مستوردة من جميع أنحاء العالم.',
     historyDesc2: 'تسمح لك فلسفتنا الفريدة بالشراء بالمليلتر، مما يتيح لك اكتشاف الجوهر النقي للفخامة دون مساومة.',
     yearsExcellence: 'سنوات من التميز',
     fragrances: 'عطر',
@@ -506,7 +506,15 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredPerfumes.map(per => (
-              <div key={per.id} onClick={() => { setSelectedPerfume(per); setQuantity(per.min_achat_ml) }} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all cursor-pointer group">
+              <div
+                key={per.id}
+                className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all cursor-pointer group"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSelectedPerfume(per);
+                  setQuantity(per.min_achat_ml);
+                }}
+              >
                 <div className="relative h-80 overflow-hidden">
                   <img src={per.image_url_1} alt={per.nom} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all"></div>
@@ -593,7 +601,7 @@ export default function Home() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
             </a>
           </div>
-          <p className="text-gray-600 text-xs">© 2026 LUXURY MAGIQUE. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
+          <p className="text-gray-600 text-xs">© 2026 LUXURY PARFUM. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : 'All rights reserved.'}</p>
         </div>
       </footer>
 

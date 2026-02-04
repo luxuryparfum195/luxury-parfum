@@ -83,9 +83,9 @@ export default function AdminDashboard() {
 
   // Settings states
   const [settings, setSettings] = useState({
-    siteName: 'LUXURY MAGIQUE',
+    siteName: 'LUXURY PARFUM',
     currency: 'EUR',
-    contactEmail: 'contact@luxurymagique.fr',
+    contactEmail: 'contact@luxuryparfum.fr',
     maintenanceMode: false,
     headerAnnouncement: 'Livraison gratuite sur toutes les commandes ce mois-ci !',
     whatsapp: '',
@@ -96,8 +96,6 @@ export default function AdminDashboard() {
       facebook: ''
     }
   })
-
-  // ... (rest of the existing state and functions: stats, handleImageUpload, removeImage, handleSaveProduct, renderSidebar)
 
   // auth session
   useEffect(() => {
@@ -120,7 +118,7 @@ export default function AdminDashboard() {
 
     // Tentative de connexion Supabase
     const { error } = await supabase.auth.signInWithPassword({
-      email: loginForm.user.includes('@') ? loginForm.user : `${loginForm.user}@luxurymagique.fr`,
+      email: loginForm.user.includes('@') ? loginForm.user : `${loginForm.user}@luxuryparfum.fr`,
       password: loginForm.pass
     })
 
@@ -188,8 +186,8 @@ export default function AdminDashboard() {
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === item.id
-                ? 'bg-black text-white shadow-lg'
-                : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+              ? 'bg-black text-white shadow-lg'
+              : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
               }`}
           >
             <item.icon className="w-5 h-5" />
