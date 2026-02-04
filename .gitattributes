@@ -1,0 +1,22 @@
+# Handle line endings automatically for files detected as text
+# and leave binary files as is.
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+*.js text
+*.css text
+*.html text
+*.ts text
+*.tsx text
+*.json text
+*.md text
+
+# Denote all files that are truly binary and should not be modified.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary

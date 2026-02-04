@@ -1,0 +1,96 @@
+========================================
+LUXURY MAGIQUE - LIENS DIRECTS
+========================================
+
+🎯 SOLUTION ULTRA-SIMPLE (100% Fonctionnel)
+
+Au lieu d'utiliser localhost qui pose problème,
+utilisez ces liens DIRECTS qui fonctionnent
+sans serveur, sans installation, sans rien !
+
+========================================
+📱 SITE CLIENT (Boutique)
+========================================
+
+COPIEZ ET COLLEZ CE LIEN DANS CHROME :
+
+file:///C:/Users/Morsi%20Store%20DZ/Desktop/BOUTIQUE%20AMIR/index.html
+
+OU ALLEZ DIRECTEMENT :
+C:\Users\Morsi Store DZ\Desktop\BOUTIQUE AMIR\index.html
+(Double-cliquez sur le fichier)
+
+========================================
+⚙️ DASHBOARD ADMIN
+========================================
+
+COPIEZ ET COLLEZ CE LIEN DANS CHROME :
+
+file:///C:/Users/Morsi%20Store%20DZ/Desktop/BOUTIQUE%20AMIR/admin.html
+
+OU ALLEZ DIRECTEMENT :
+C:\Users\Morsi Store DZ\Desktop\BOUTIQUE AMIR\admin.html
+(Double-cliquez sur le fichier)
+
+========================================
+🚀 MÉTHODE LA PLUS SIMPLE
+========================================
+
+1. Ouvrez l'Explorateur Windows
+2. Allez dans : C:\Users\Morsi Store DZ\Desktop\BOUTIQUE AMIR\
+3. Double-cliquez sur "index.html" → Site Client
+4. Double-cliquez sur "admin.html" → Dashboard Admin
+
+C'EST TOUT ! Pas besoin de serveur, pas besoin de localhost !
+
+========================================
+📋 AUTRE MÉTHODE : Lanceur Automatique
+========================================
+
+Double-cliquez sur le fichier :
+👉 OUVRIR-SITES.bat
+
+Cela ouvrira automatiquement les deux sites dans Chrome !
+
+========================================
+❓ POURQUOI localhost ne fonctionne pas ?
+========================================
+
+Problèmes courants :
+❌ Port 80 occupé par un autre programme
+❌ XAMPP/Apache ne démarre pas
+❌ Node.js a des erreurs
+❌ Firewall bloque le port
+
+SOLUTION : Utilisez les liens file:// ci-dessus !
+Ils fonctionnent TOUJOURS sans aucune configuration !
+
+========================================
+✅ CARACTÉRISTIQUES DES SITES
+========================================
+
+📱 Site Client :
+✓ 3 parfums de luxe avec images
+✓ Design crème/or élégant
+✓ Panier dynamique fonctionnel
+✓ Responsive (mobile/tablette/desktop)
+✓ Notes olfactives stylisées
+
+⚙️ Dashboard Admin :
+✓ Statistiques en temps réel
+✓ Tableau de gestion CRUD
+✓ Interface sombre professionnelle
+✓ Boutons Modifier/Supprimer
+✓ Thème noir/or
+
+========================================
+🎉 C'EST PRÊT !
+========================================
+
+Utilisez l'une des méthodes ci-dessus et
+les sites s'ouvriront immédiatement !
+
+Si vous avez des questions, consultez le fichier :
+👉 LIENS-DIRECTS.txt (ce fichier)
+
+========================================

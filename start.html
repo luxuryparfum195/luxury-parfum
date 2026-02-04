@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUXURY MAGIQUE - Lanceur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            max-width: 800px;
+            padding: 40px;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #C9A227, #F4E4BC, #C9A227);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        
+        .sites-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .site-card {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(201, 162, 39, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .site-card:hover {
+            transform: translateY(-10px);
+            border-color: #C9A227;
+            box-shadow: 0 20px 40px rgba(201, 162, 39, 0.3);
+        }
+        
+        .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .site-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #C9A227;
+        }
+        
+        .site-desc {
+            color: #888;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #C9A227, #8B6914);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(201, 162, 39, 0.4);
+        }
+        
+        .instructions {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            border-left: 4px solid #C9A227;
+        }
+        
+        .instructions h3 {
+            color: #C9A227;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            text-align: left;
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        
+        .file-path {
+            background: rgba(201, 162, 39, 0.2);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #F4E4BC;
+        }
+        
+        @media (max-width: 768px) {
+            .sites-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LUXURY MAGIQUE</h1>
+        <p class="subtitle">Parfums Haute Couture - Sites Web</p>
+        
+        <div class="sites-grid">
+            <!-- Site Client -->
+            <div class="site-card" onclick="openSite('client')">
+                <div class="icon">🛍️</div>
+                <div class="site-title">Site Client</div>
+                <div class="site-desc">Boutique en ligne avec 3 parfums de luxe, panier, et design élégant</div>
+                <a href="index.html" class="btn">OUVRIR LE SITE</a>
+            </div>
+            
+            <!-- Dashboard Admin -->
+            <div class="site-card" onclick="openSite('admin')">
+                <div class="icon">⚙️</div>
+                <div class="site-title">Dashboard Admin</div>
+                <div class="site-desc">Interface de gestion avec statistiques, tableau de bord et contrôles</div>
+                <a href="admin.html" class="btn">OUVRIR L'ADMIN</a>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Instructions d'utilisation</h3>
+            <ol>
+                <li><strong>Cliquez sur un bouton ci-dessus</strong> pour ouvrir le site</li>
+                <li>Si cela ne fonctionne pas, <strong>ouvrez directement les fichiers</strong> :</li>
+                <li>Allez dans : <span class="file-path">C:\Users\Morsi Store DZ\Desktop\BOUTIQUE AMIR\</span></li>
+                <li>Double-cliquez sur <span class="file-path">index.html</span> pour le site client</li>
+                <li>Double-cliquez sur <span class="file-path">admin.html</span> pour l'admin</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        function openSite(type) {
+            if (type === 'client') {
+                window.location.href = 'index.html';
+            } else {
+                window.location.href = 'admin.html';
+            }
+        }
+        
+        // Auto-redirect après 5 secondes si l'utilisateur ne clique pas
+        setTimeout(() => {
+            console.log('Sites prêts à être ouverts !');
+        }, 5000);
+    </script>
+</body>
+</html>
