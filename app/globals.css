@@ -515,3 +515,170 @@ body {
         font-size: 2.5rem;
     }
 }
+
+/* ===== HERO SLIDER ANIMATIONS ===== */
+@keyframes kenBurns {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.1);
+    }
+}
+
+.hero-slide-active {
+    animation: kenBurns 2.5s ease-out forwards;
+}
+
+@keyframes slideInFromRight {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutToLeft {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeScale {
+    0% {
+        opacity: 0;
+        transform: scale(1.2);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.bg-gradient-animated {
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+}
+
+/* ===== TEXT REVEAL ANIMATION ===== */
+@keyframes textReveal {
+    0% {
+        clip-path: inset(0 100% 0 0);
+        opacity: 0;
+    }
+
+    100% {
+        clip-path: inset(0 0 0 0);
+        opacity: 1;
+    }
+}
+
+.text-reveal {
+    animation: textReveal 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ===== GOLDEN BORDER GLOW ===== */
+@keyframes borderGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 5px rgba(201, 162, 39, 0.3),
+            0 0 10px rgba(201, 162, 39, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(201, 162, 39, 0.5),
+            0 0 40px rgba(201, 162, 39, 0.3);
+    }
+}
+
+.border-glow-animated {
+    animation: borderGlow 2s ease-in-out infinite;
+}
+
+/* ===== SLIDE INDICATOR ANIMATION ===== */
+@keyframes slideIndicatorProgress {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+.slide-progress::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--gold);
+    animation: slideIndicatorProgress 2.5s linear;
+}
+
+/* ===== FLOATING PARTICLES ===== */
+@keyframes particleFade {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: translateY(0) scale(0);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: translateY(-30px) scale(1);
+    }
+}
+
+.particle-animated {
+    animation: particleFade 3s ease-in-out infinite;
+}
+
+/* ===== RTL SUPPORT ===== */
+[dir="rtl"] .slide-in-left {
+    animation-name: slideInFromRight;
+}
+
+[dir="rtl"] .slide-in-right {
+    animation-name: slideInFromLeft;
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

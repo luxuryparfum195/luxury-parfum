@@ -1,8 +1,17 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+
+// Images du Hero Slider
+const heroSlides = [
+  '/hero-slide-1.jpg',
+  '/hero-slide-2.jpg',
+  '/hero-slide-3.jpg',
+  '/hero-slide-4.jpg',
+  '/hero-slide-5.jpg'
+]
 
 // Types
 interface Parfum {
@@ -37,6 +46,67 @@ interface HeroText {
   title_highlight: string
   description: string
   button_text: string
+}
+
+// Textes "À propos" en 3 langues
+const aboutTexts = {
+  fr: {
+    mainTitle: "Présentation Officielle",
+    intro: "Nous sommes une entreprise spécialisée dans l'univers de la parfumerie. Nous croyons que le parfum n'est pas seulement une fragrance, mais une signature personnelle qui exprime l'identité et le goût.",
+    introSub: "Nous opérons à travers deux divisions complémentaires, alliant authenticité et créativité, afin d'offrir une expérience olfactive raffinée, accessible à tous les goûts et à tous les budgets, sans aucun compromis sur la qualité ni sur la crédibilité.",
+    division1Title: "Parfums Originaux",
+    division1Subtitle: "Original Fragrances",
+    division1Text: "Nous proposons une sélection rigoureuse de parfums originaux issus de grandes marques internationales reconnues, avec un engagement total envers l'authenticité et une qualité pleinement garantie.",
+    division1Text2: "Convaincus que le parfum de luxe doit être accessible à tous, nous mettons à disposition nos parfums originaux en différents formats, allant de 3 ml, 5 ml, 10 ml, jusqu'à 50 ml et 100 ml.",
+    division2Title: "Parfums de Création",
+    division2Subtitle: "Signature & Crafted Fragrances",
+    division2Text: "Au sein de notre division de parfums de création, nous passons du choix à la création. Nous sélectionnons avec le plus grand soin les meilleures huiles parfumées.",
+    division2Features: [
+      "Matières premières de haute qualité",
+      "Composants purs et sûrs, respectueux de la santé",
+      "Ajouts soigneusement étudiés pour renforcer la tenue"
+    ],
+    visionTitle: "Notre Vision",
+    visionText: "Devenir une marque de parfumerie de confiance, alliant authenticité, accessibilité et créativité, et permettre à chacun de créer sa propre signature olfactive."
+  },
+  en: {
+    mainTitle: "Official Presentation",
+    intro: "We are a company specialized in the world of perfumery. We believe that perfume is not just a fragrance, but a personal signature that expresses identity and taste.",
+    introSub: "We operate through two complementary divisions, combining authenticity and creativity, to offer a refined olfactory experience, accessible to all tastes and budgets, without any compromise on quality or credibility.",
+    division1Title: "Original Fragrances",
+    division1Subtitle: "Authentic Perfumes",
+    division1Text: "We offer a rigorous selection of original perfumes from renowned international brands, with a total commitment to authenticity and fully guaranteed quality.",
+    division1Text2: "Convinced that luxury perfume should be accessible to all, we make our original perfumes available in different formats, ranging from 3ml, 5ml, 10ml, up to 50ml and 100ml.",
+    division2Title: "Crafted Fragrances",
+    division2Subtitle: "Signature & Custom Blends",
+    division2Text: "Within our creation division, we move from selection to creation. We carefully select the finest perfume oils with utmost care.",
+    division2Features: [
+      "High-quality raw materials",
+      "Pure and safe components, health-conscious",
+      "Carefully studied additions to enhance longevity"
+    ],
+    visionTitle: "Our Vision",
+    visionText: "To become a trusted perfumery brand, combining authenticity, accessibility and creativity, and enabling everyone to create their own olfactory signature."
+  },
+  ar: {
+    mainTitle: "التعريف الرسمي للشركة",
+    intro: "نحن شركة متخصصة في عالم العطور، نؤمن بأن العطر ليس مجرد رائحة، بل بصمة شخصية تعبّر عن الهوية والذوق.",
+    introSub: "نعمل من خلال قسمين متكاملين، يجمعان بين الأصالة والإبداع، لنقدّم تجربة عطرية راقية تناسب جميع الأذواق والميزانيات دون المساس بالجودة أو المصداقية.",
+    division1Title: "العطور الأصلية",
+    division1Subtitle: "Original Fragrances",
+    division1Text: "نقدّم مجموعة مختارة من العطور الأصلية للعلامات العالمية الموثوقة، مع التزام كامل بالأصالة والجودة المضمونة.",
+    division1Text2: "انطلاقًا من إيماننا بأن العطر الفاخر يجب أن يكون متاحًا للجميع، نوفر عطورنا الأصلية بمقاسات متعددة تبدأ من 3 مل، 5 مل، 10 مل، وصولًا إلى 50 مل و100 مل.",
+    division2Title: "العطور المركبة",
+    division2Subtitle: "Signature & Crafted Fragrances",
+    division2Text: "في قسم العطور المركبة، ننتقل من الاختيار إلى الإبداع. نقوم بعناية فائقة باختيار أجود الزيوت العطرية.",
+    division2Features: [
+      "خامات عالية الجودة",
+      "مواد نقية وآمنة تحافظ على الصحة العامة",
+      "إضافات مدروسة تعزّز ثبات العطر وأدائه"
+    ],
+    visionTitle: "رؤيتنا",
+    visionText: "أن نكون علامة عطرية موثوقة تجمع بين الأصالة، الإتاحة، والإبداع، وتمكّن كل شخص من أن يصنع لنفسه بصمته العطرية الخاصة."
+  }
 }
 
 // Textes par défaut (fallback)
@@ -133,10 +203,29 @@ export default function Home() {
   })
   const [heroTexts, setHeroTexts] = useState<Record<'fr' | 'en' | 'ar', HeroText>>(defaultHeroTexts)
   const [loading, setLoading] = useState(true)
+  const [currentSlide, setCurrentSlide] = useState(0)
 
   const t = translations[lang]
   const heroText = heroTexts[lang]
+  const aboutT = aboutTexts[lang]
   const heroRef = useRef<HTMLElement>(null)
+
+  // Auto-slide toutes les 2.5 secondes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Fonctions de navigation du slider
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
+  }, [])
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)
+  }, [])
 
   // Load data from Supabase
   useEffect(() => {
@@ -271,37 +360,133 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* HERO - AMÉLIORÉ */}
+      {/* HERO - SLIDER SPECTACULAIRE */}
       <section ref={heroRef} className="min-h-screen flex items-center relative overflow-hidden">
-        {/* Image de fond claire et visible */}
+        {/* Background Slider avec transitions */}
         <div className="absolute inset-0 z-0">
-          <img
-            src={settings.hero_bg_image || "https://i.postimg.cc/G2jML17x/catalog-ai-1-compressed-1-Page-02.jpg"}
-            alt="Hero Background"
-            className="w-full h-full object-cover"
-          />
-          {/* Overlay plus léger pour garder l'image visible */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSlide}
+              initial={{ opacity: 0, scale: 1.2 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <img
+                src={heroSlides[currentSlide]}
+                alt={`Slide ${currentSlide + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Overlay élégant avec gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/40"></div>
+
+          {/* Particules flottantes dorées */}
+          <div className="absolute inset-0 overflow-hidden">
+            {[...Array(15)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 bg-[#C9A227] rounded-full opacity-40"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                }}
+                animate={{
+                  y: [-20, 20, -20],
+                  x: [-10, 10, -10],
+                  opacity: [0.2, 0.6, 0.2],
+                }}
+                transition={{
+                  duration: 4 + Math.random() * 2,
+                  repeat: Infinity,
+                  delay: i * 0.2,
+                }}
+              />
+            ))}
+          </div>
         </div>
 
+        {/* Flèches de navigation */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-30 group"
+        >
+          <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 group-hover:bg-[#C9A227] group-hover:border-[#C9A227] group-hover:scale-110">
+            <svg className="w-6 h-6 md:w-8 md:h-8 text-white transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </div>
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-30 group"
+        >
+          <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-300 group-hover:bg-[#C9A227] group-hover:border-[#C9A227] group-hover:scale-110">
+            <svg className="w-6 h-6 md:w-8 md:h-8 text-white transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </button>
+
+        {/* Contenu du Hero */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center w-full pt-20">
-          {/* Texte du Hero - Modifiable depuis l'admin */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className={`${lang === 'ar' ? 'lg:text-right' : 'lg:text-left'} text-center`}
-          >
-            <p className="text-[#C9A227] text-lg tracking-[0.3em] mb-6 uppercase font-bold">{heroText.subtitle}</p>
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-8" style={{ fontFamily: 'Cinzel, serif' }}>
-              {heroText.title_line1}
-              <span className="block text-[#C9A227] mt-2">{heroText.title_highlight}</span>
-            </h1>
-            <p className="text-gray-200 text-lg max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">{heroText.description}</p>
-            <a href="#collections" className="inline-block bg-[#C9A227] text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-[#8B6914] hover:scale-105 transition-all shadow-2xl shadow-[#C9A227]/30">
-              {heroText.button_text}
-            </a>
-          </motion.div>
+          {/* Texte du Hero animé */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`text-${currentSlide}`}
+              initial={{ opacity: 0, x: lang === 'ar' ? 50 : -50, y: 20 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              exit={{ opacity: 0, x: lang === 'ar' ? -50 : 50, y: -20 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className={`${lang === 'ar' ? 'lg:text-right' : 'lg:text-left'} text-center`}
+            >
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-[#C9A227] text-lg tracking-[0.3em] mb-6 uppercase font-bold"
+              >
+                {heroText.subtitle}
+              </motion.p>
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-5xl md:text-7xl font-bold text-white mb-8"
+                style={{ fontFamily: 'Cinzel, serif' }}
+              >
+                {heroText.title_line1}
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                  className="block text-[#C9A227] mt-2"
+                >
+                  {heroText.title_highlight}
+                </motion.span>
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="text-gray-200 text-lg max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed"
+              >
+                {heroText.description}
+              </motion.p>
+              <motion.a
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                href="#collections"
+                className="inline-block bg-[#C9A227] text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-[#8B6914] hover:scale-105 transition-all shadow-2xl shadow-[#C9A227]/30"
+              >
+                {heroText.button_text}
+              </motion.a>
+            </motion.div>
+          </AnimatePresence>
 
           {/* 3 Parfums avec animations au survol */}
           <div className="hidden lg:flex justify-center items-center gap-6">
@@ -315,32 +500,25 @@ export default function Home() {
                 onMouseLeave={() => setHoveredPerfume(null)}
                 onClick={() => { setSelectedPerfume(parfum); setQuantity(parfum.min_achat_ml); setManualQuantity('') }}
                 className={`relative cursor-pointer transition-all duration-500 ${hoveredPerfume === index
-                    ? 'scale-110 z-20'
-                    : hoveredPerfume !== null
-                      ? 'scale-95 opacity-70'
-                      : 'scale-100'
+                  ? 'scale-110 z-20'
+                  : hoveredPerfume !== null
+                    ? 'scale-95 opacity-70'
+                    : 'scale-100'
                   }`}
               >
                 <div className="relative group">
-                  {/* Glow effect au survol */}
                   <div className={`absolute -inset-4 bg-[#C9A227]/30 rounded-3xl blur-xl transition-opacity duration-500 ${hoveredPerfume === index ? 'opacity-100' : 'opacity-0'}`}></div>
-
-                  {/* Image du parfum */}
                   <div className="relative w-48 h-64 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl">
                     <img
                       src={parfum.image_url_1 || 'https://via.placeholder.com/200x300'}
                       alt={parfum.nom}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-
-                    {/* Overlay avec infos */}
                     <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex flex-col justify-end p-4 transition-opacity duration-300 ${hoveredPerfume === index ? 'opacity-100' : 'opacity-0'}`}>
                       <p className="text-white font-bold text-sm truncate">{parfum.nom}</p>
                       <p className="text-[#C9A227] font-bold text-lg">{formatPrice(parfum.prix_eur)}/ml</p>
                     </div>
                   </div>
-
-                  {/* Badge catégorie */}
                   <div className="absolute -top-2 -right-2 bg-[#C9A227] text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                     {parfum.categorie}
                   </div>
@@ -348,6 +526,20 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+        </div>
+
+        {/* Indicateurs de slide */}
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 flex gap-3">
+          {heroSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`transition-all duration-300 rounded-full ${currentSlide === index
+                ? 'w-12 h-3 bg-[#C9A227]'
+                : 'w-3 h-3 bg-white/40 hover:bg-white/60'
+                }`}
+            />
+          ))}
         </div>
 
         {/* Scroll indicator */}
@@ -369,8 +561,8 @@ export default function Home() {
             <button
               onClick={() => setSelectedGender('')}
               className={`px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 ${selectedGender === ''
-                  ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
+                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
             >
               {t.all}
@@ -378,8 +570,8 @@ export default function Home() {
             <button
               onClick={() => setSelectedGender('Homme')}
               className={`px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center gap-2 ${selectedGender === 'Homme'
-                  ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
+                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
             >
               <span>👔</span> {t.homme}
@@ -387,8 +579,8 @@ export default function Home() {
             <button
               onClick={() => setSelectedGender('Femme')}
               className={`px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center gap-2 ${selectedGender === 'Femme'
-                  ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
+                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
             >
               <span>👗</span> {t.femme}
@@ -396,8 +588,8 @@ export default function Home() {
             <button
               onClick={() => setSelectedGender('Unisexe')}
               className={`px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center gap-2 ${selectedGender === 'Unisexe'
-                  ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
+                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
             >
               <span>✨</span> {t.unisexe}
@@ -406,25 +598,257 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ABOUT */}
-      <section id="about" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-16 items-center">
-          <img src="https://i.postimg.cc/SNX0mD82/catalog-ai-1-compressed-1-Page-04.jpg" alt="History" className="rounded-3xl shadow-2xl" />
-          <div>
-            <p className="text-[#C9A227] tracking-widest mb-4">{t.history}</p>
-            <h2 className="text-4xl font-bold mb-8" style={{ fontFamily: 'Cinzel, serif' }}>{t.excellenceTitle}</h2>
-            <p className="text-gray-600 mb-6">{t.historyDesc1}</p>
-            <p className="text-gray-600 mb-10">{t.historyDesc2}</p>
-            <div className="grid grid-cols-3 gap-4">
-              {[{ val: `${parfums.length}+`, label: t.fragrances }, { val: '10K+', label: t.clients }, { val: '100%', label: t.premium }].map(s => (
-                <div key={s.label} className="bg-[#FFFAF0] p-4 rounded-2xl text-center">
-                  <p className="text-2xl font-bold text-[#C9A227]">{s.val}</p>
-                  <p className="text-xs text-gray-500 uppercase">{s.label}</p>
+      {/* ABOUT - PRÉSENTATION COMPLÈTE */}
+      <section id="about" className="py-24 bg-gradient-to-b from-[#0A0A0A] to-[#1a1a1a] overflow-hidden">
+        {/* Titre principal animé */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20 px-4"
+        >
+          <motion.div
+            initial={{ width: 0 }}
+            whileInView={{ width: "100px" }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="h-1 bg-gradient-to-r from-transparent via-[#C9A227] to-transparent mx-auto mb-8"
+          />
+          <h2 className="text-4xl md:text-6xl font-bold text-white mb-6" style={{ fontFamily: 'Cinzel, serif' }}>
+            <span className="text-[#C9A227]">{aboutT.mainTitle}</span>
+          </h2>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+            className="text-gray-300 text-lg md:text-xl max-w-4xl mx-auto leading-relaxed"
+          >
+            {aboutT.intro}
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 }}
+            className="text-gray-400 text-base md:text-lg max-w-4xl mx-auto mt-6 leading-relaxed"
+          >
+            {aboutT.introSub}
+          </motion.p>
+        </motion.div>
+
+        {/* Divisions */}
+        <div className="max-w-7xl mx-auto px-4 space-y-24">
+          {/* Division 1: Parfums Originaux */}
+          <motion.div
+            initial={{ opacity: 0, x: -100 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="grid lg:grid-cols-2 gap-12 items-center"
+          >
+            <div className="relative group">
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#C9A227]/20 to-transparent rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative overflow-hidden rounded-3xl">
+                <img
+                  src="/hero-slide-3.jpg"
+                  alt="Parfums Originaux"
+                  className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <span className="text-[#C9A227] text-sm tracking-[0.3em] uppercase font-bold">01</span>
                 </div>
+              </div>
+            </div>
+            <div className={`space-y-6 ${lang === 'ar' ? 'text-right' : ''}`}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
+                <span className="text-[#C9A227] text-sm tracking-[0.3em] uppercase font-bold">{aboutT.division1Subtitle}</span>
+                <h3 className="text-3xl md:text-4xl font-bold text-white mt-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                  {aboutT.division1Title}
+                </h3>
+              </motion.div>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="text-gray-300 text-lg leading-relaxed"
+              >
+                {aboutT.division1Text}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+                className="text-gray-400 leading-relaxed"
+              >
+                {aboutT.division1Text2}
+              </motion.p>
+              {/* Tailles disponibles */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5 }}
+                className="flex flex-wrap gap-3 pt-4"
+              >
+                {['3ml', '5ml', '10ml', '50ml', '100ml'].map((size, i) => (
+                  <motion.span
+                    key={size}
+                    initial={{ scale: 0 }}
+                    whileInView={{ scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.5 + i * 0.1, type: "spring" }}
+                    className="px-4 py-2 bg-[#C9A227]/10 border border-[#C9A227]/30 rounded-full text-[#C9A227] text-sm font-bold"
+                  >
+                    {size}
+                  </motion.span>
+                ))}
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* Division 2: Parfums de Création */}
+          <motion.div
+            initial={{ opacity: 0, x: 100 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="grid lg:grid-cols-2 gap-12 items-center"
+          >
+            <div className={`space-y-6 order-2 lg:order-1 ${lang === 'ar' ? 'text-right' : ''}`}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
+                <span className="text-[#C9A227] text-sm tracking-[0.3em] uppercase font-bold">{aboutT.division2Subtitle}</span>
+                <h3 className="text-3xl md:text-4xl font-bold text-white mt-2" style={{ fontFamily: 'Cinzel, serif' }}>
+                  {aboutT.division2Title}
+                </h3>
+              </motion.div>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="text-gray-300 text-lg leading-relaxed"
+              >
+                {aboutT.division2Text}
+              </motion.p>
+              {/* Caractéristiques */}
+              <motion.ul
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+                className="space-y-4 pt-4"
+              >
+                {aboutT.division2Features.map((feature, i) => (
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.4 + i * 0.15 }}
+                    className="flex items-center gap-4 text-gray-300"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-[#C9A227]/20 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span>{feature}</span>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </div>
+            <div className="relative group order-1 lg:order-2">
+              <div className="absolute -inset-4 bg-gradient-to-l from-[#C9A227]/20 to-transparent rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative overflow-hidden rounded-3xl">
+                <img
+                  src="/hero-slide-5.jpg"
+                  alt="Parfums de Création"
+                  className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <span className="text-[#C9A227] text-sm tracking-[0.3em] uppercase font-bold">02</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Vision Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mt-32 relative"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#C9A227]/5 via-[#C9A227]/10 to-[#C9A227]/5"></div>
+          <div className="max-w-4xl mx-auto px-4 py-20 text-center relative">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <div className="w-20 h-20 mx-auto mb-8 rounded-full bg-[#C9A227]/20 flex items-center justify-center">
+                <svg className="w-10 h-10 text-[#C9A227]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </div>
+              <h3 className="text-3xl md:text-4xl font-bold text-white mb-6" style={{ fontFamily: 'Cinzel, serif' }}>
+                {aboutT.visionTitle}
+              </h3>
+              <p className="text-gray-300 text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
+                {aboutT.visionText}
+              </p>
+            </motion.div>
+            {/* Statistiques animées */}
+            <div className="grid grid-cols-3 gap-8 mt-16">
+              {[
+                { val: `${parfums.length}+`, label: t.fragrances },
+                { val: '10K+', label: t.clients },
+                { val: '100%', label: t.premium }
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 + i * 0.1 }}
+                  className="text-center"
+                >
+                  <motion.p
+                    initial={{ scale: 0.5 }}
+                    whileInView={{ scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + i * 0.1, type: "spring", stiffness: 200 }}
+                    className="text-4xl md:text-5xl font-bold text-[#C9A227]"
+                    style={{ fontFamily: 'Cinzel, serif' }}
+                  >
+                    {stat.val}
+                  </motion.p>
+                  <p className="text-gray-400 text-sm uppercase tracking-widest mt-2">{stat.label}</p>
+                </motion.div>
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* COLLECTIONS */}
