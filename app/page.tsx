@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
+import { motion } from 'framer-motion'
 
 // Types
 interface Parfum {
@@ -24,14 +25,49 @@ interface Settings {
   whatsapp_number: string
   taux_usd: number
   taux_fcfa: number
+  hero_bg_image?: string
+  hero_perfume_1?: string
+  hero_perfume_2?: string
+  hero_perfume_3?: string
+}
+
+interface HeroText {
+  subtitle: string
+  title_line1: string
+  title_highlight: string
+  description: string
+  button_text: string
+}
+
+// Textes par défaut (fallback)
+const defaultHeroTexts: Record<'fr' | 'en' | 'ar', HeroText> = {
+  fr: {
+    subtitle: 'Parfums Haute Couture',
+    title_line1: "L'Art de la",
+    title_highlight: 'Séduction',
+    description: "Découvrez notre collection exclusive de parfums de luxe. Chaque fragrance est une œuvre d'art olfactive créée pour les âmes raffinées.",
+    button_text: 'Découvrir la Collection'
+  },
+  en: {
+    subtitle: 'Haute Couture Perfumes',
+    title_line1: "The Art of",
+    title_highlight: 'Seduction',
+    description: "Discover our exclusive collection of luxury perfumes. Each fragrance is an olfactory work of art.",
+    button_text: 'Discover Collection'
+  },
+  ar: {
+    subtitle: 'عطور الهوت كوتور',
+    title_line1: 'فن',
+    title_highlight: 'الإغراء',
+    description: "اكتشف مجموعتنا الحصرية من العطور الفاخرة. كل عطر هو عمل فني عطري مصنوع للأرواح الراقية.",
+    button_text: 'اكتشف المجموعة'
+  }
 }
 
 const translations = {
   fr: {
     collections: 'Collections', history: 'Notre Histoire', testimonials: 'Témoignages', cart: 'Panier',
-    heroSubtitle: 'Parfums Haute Couture', heroTitle: "L'Art de la", heroHighlight: 'Séduction',
-    heroDesc: "Découvrez notre collection exclusive de parfums de luxe. Chaque fragrance est une œuvre d'art olfactive créée pour les âmes raffinées.",
-    discover: 'Découvrir la Collection', search: 'Rechercher', excellenceTitle: "L'Excellence de la Parfumerie",
+    search: 'Rechercher', excellenceTitle: "L'Excellence de la Parfumerie",
     historyDesc1: "Fondée sur les principes de l'artisanat français, LUXURY PARFUM représente l'apogée de la parfumerie de luxe.",
     historyDesc2: "Notre philosophie unique vous permet d'acheter au millilitre, découvrant ainsi l'essence pure du luxe sans compromis.",
     fragrances: 'Fragrances', clients: 'Clients', premium: 'Premium', ourCreations: 'Nos Créations',
@@ -40,13 +76,12 @@ const translations = {
     checkout: 'Commander', emptyCart: 'Votre panier est vide', continueShopping: 'Continuer',
     searchPlaceholder: 'Rechercher...', quantity: 'Quantité', addToCart: 'Ajouter au panier',
     orderWhatsapp: 'Commander sur WhatsApp', stock: 'Stock', outOfStock: 'Rupture de stock',
-    enterQuantity: 'Entrez la quantité en ml', minOrder: 'Min', maxOrder: 'Max'
+    enterQuantity: 'Entrez la quantité en ml', minOrder: 'Min', maxOrder: 'Max',
+    homme: 'Homme', femme: 'Femme', unisexe: 'Unisexe', all: 'Tous'
   },
   en: {
     collections: 'Collections', history: 'Our History', testimonials: 'Testimonials', cart: 'Cart',
-    heroSubtitle: 'Haute Couture Perfumes', heroTitle: "The Art of", heroHighlight: 'Seduction',
-    heroDesc: "Discover our exclusive collection of luxury perfumes. Each fragrance is an olfactory work of art.",
-    discover: 'Discover Collection', search: 'Search', excellenceTitle: "The Excellence of Perfumery",
+    search: 'Search', excellenceTitle: "The Excellence of Perfumery",
     historyDesc1: "Founded on French craftsmanship principles, LUXURY PARFUM represents the pinnacle of luxury perfumery.",
     historyDesc2: "Our unique philosophy allows you to buy by the milliliter, discovering pure essence of luxury.",
     fragrances: 'Fragrances', clients: 'Clients', premium: 'Premium', ourCreations: 'Our Creations',
@@ -55,13 +90,12 @@ const translations = {
     checkout: 'Checkout', emptyCart: 'Your cart is empty', continueShopping: 'Continue',
     searchPlaceholder: 'Search...', quantity: 'Quantity', addToCart: 'Add to cart',
     orderWhatsapp: 'Order on WhatsApp', stock: 'Stock', outOfStock: 'Out of stock',
-    enterQuantity: 'Enter quantity in ml', minOrder: 'Min', maxOrder: 'Max'
+    enterQuantity: 'Enter quantity in ml', minOrder: 'Min', maxOrder: 'Max',
+    homme: 'Men', femme: 'Women', unisexe: 'Unisex', all: 'All'
   },
   ar: {
     collections: 'المجموعات', history: 'قصتنا', testimonials: 'شهادات', cart: 'السلة',
-    heroSubtitle: 'عطور الهوت كوتور', heroTitle: 'فن', heroHighlight: 'الإغراء',
-    heroDesc: "اكتشف مجموعتنا الحصرية من العطور الفاخرة.",
-    discover: 'اكتشف المجموعة', search: 'بحث', excellenceTitle: 'التميز في صناعة العطور',
+    search: 'بحث', excellenceTitle: 'التميز في صناعة العطور',
     historyDesc1: 'تأسست على مبادئ الحرفية الفرنسية.', historyDesc2: 'فلسفتنا الفريدة تتيح لك الشراء بالمليلتر.',
     fragrances: 'عطر', clients: 'عميل', premium: 'ممتاز', ourCreations: 'إبداعاتنا',
     exclusiveColl: 'مجموعة حصرية', collDesc: 'استكشف مجموعتنا المختارة.',
@@ -69,11 +103,13 @@ const translations = {
     checkout: 'إتمام الطلب', emptyCart: 'السلة فارغة', continueShopping: 'متابعة',
     searchPlaceholder: 'بحث...', quantity: 'الكمية', addToCart: 'أضف للسلة',
     orderWhatsapp: 'اطلب عبر واتساب', stock: 'المخزون', outOfStock: 'نفذ المخزون',
-    enterQuantity: 'أدخل الكمية بالمل', minOrder: 'الحد الأدنى', maxOrder: 'الحد الأقصى'
+    enterQuantity: 'أدخل الكمية بالمل', minOrder: 'الحد الأدنى', maxOrder: 'الحد الأقصى',
+    homme: 'رجال', femme: 'نساء', unisexe: 'للجنسين', all: 'الكل'
   }
 }
 
-
+// Catégories de genre principales
+const genderCategories = ['Homme', 'Femme', 'Unisexe']
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -82,18 +118,24 @@ export default function Home() {
   const [manualQuantity, setManualQuantity] = useState('')
   const [showCart, setShowCart] = useState(false)
   const [cart, setCart] = useState<any[]>([])
-  const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedGender, setSelectedGender] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
-  const [selectedOccasion, setSelectedOccasion] = useState('')
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [hoveredPerfume, setHoveredPerfume] = useState<number | null>(null)
   const [lang, setLang] = useState<'fr' | 'en' | 'ar'>('fr')
   const [currency, setCurrency] = useState<'EUR' | 'USD' | 'FCFA'>('EUR')
   const [parfums, setParfums] = useState<Parfum[]>([])
-  const [settings, setSettings] = useState<Settings>({ whatsapp_number: '212600000000', taux_usd: 1.08, taux_fcfa: 655.957 })
+  const [settings, setSettings] = useState<Settings>({
+    whatsapp_number: '212600000000',
+    taux_usd: 1.08,
+    taux_fcfa: 655.957,
+    hero_bg_image: ''
+  })
+  const [heroTexts, setHeroTexts] = useState<Record<'fr' | 'en' | 'ar', HeroText>>(defaultHeroTexts)
   const [loading, setLoading] = useState(true)
 
   const t = translations[lang]
+  const heroText = heroTexts[lang]
   const heroRef = useRef<HTMLElement>(null)
 
   // Load data from Supabase
@@ -102,15 +144,31 @@ export default function Home() {
 
     const loadData = async () => {
       try {
-        const [parfumsRes, settingsRes] = await Promise.all([
+        const [parfumsRes, settingsRes, heroTextsRes] = await Promise.all([
           supabase.from('parfums').select('*').eq('est_disponible', true).order('created_at', { ascending: false }),
-          supabase.from('site_settings').select('*').eq('id', 1).single()
+          supabase.from('site_settings').select('*').eq('id', 1).single(),
+          supabase.from('hero_texts').select('*')
         ])
 
         if (!mounted) return
 
         if (parfumsRes.data) setParfums(parfumsRes.data)
         if (settingsRes.data) setSettings(settingsRes.data)
+
+        // Charger les textes du hero depuis la base de données
+        if (heroTextsRes.data && heroTextsRes.data.length > 0) {
+          const textsFromDb: Record<string, HeroText> = {}
+          heroTextsRes.data.forEach((row: any) => {
+            textsFromDb[row.language] = {
+              subtitle: row.subtitle,
+              title_line1: row.title_line1,
+              title_highlight: row.title_highlight,
+              description: row.description,
+              button_text: row.button_text
+            }
+          })
+          setHeroTexts({ ...defaultHeroTexts, ...textsFromDb } as Record<'fr' | 'en' | 'ar', HeroText>)
+        }
       } catch (error: any) {
         if (mounted && error.name !== 'AbortError' && !error.message?.includes('aborted')) {
           console.error('Error loading data:', error)
@@ -129,17 +187,6 @@ export default function Home() {
     const handleScroll = () => setIsScrolled(window.scrollY > 50)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (heroRef.current) {
-        const rect = heroRef.current.getBoundingClientRect()
-        setMousePos({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 })
-      }
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
   const exchangeRates = { EUR: 1, USD: settings.taux_usd, FCFA: settings.taux_fcfa }
@@ -166,14 +213,16 @@ export default function Home() {
   const cartCount = cart.length
   const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0)
 
-  const categories = useMemo(() => Array.from(new Set(parfums.map(p => p.categorie))), [parfums])
-  const occasions = useMemo(() => Array.from(new Set(parfums.flatMap(p => p.occasions || []))), [parfums])
+  const categories = useMemo(() => Array.from(new Set(parfums.map(p => p.categorie).filter(c => !genderCategories.includes(c)))), [parfums])
+
+  // 3 premiers parfums pour le hero
+  const heroPerfumes = useMemo(() => parfums.slice(0, 3), [parfums])
 
   const filteredPerfumes = parfums.filter(p => {
     const matchesSearch = p.nom.toLowerCase().includes(searchQuery.toLowerCase()) || (p.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesGender = !selectedGender || p.categorie === selectedGender
     const matchesCategory = !selectedCategory || p.categorie === selectedCategory
-    const matchesOccasion = !selectedOccasion || (p.occasions || []).includes(selectedOccasion)
-    return matchesSearch && matchesCategory && matchesOccasion
+    return matchesSearch && matchesGender && matchesCategory
   })
 
   const handleQuantityChange = (value: string) => {
@@ -202,7 +251,6 @@ export default function Home() {
           <div className="hidden lg:flex gap-8 items-center">
             <a href="#collections" className={`font-medium hover:text-[#C9A227] transition-colors ${isScrolled ? 'text-gray-800' : 'text-white'}`}>{t.collections}</a>
             <a href="#about" className={`font-medium hover:text-[#C9A227] transition-colors ${isScrolled ? 'text-gray-800' : 'text-white'}`}>{t.history}</a>
-
           </div>
           <div className="flex items-center gap-4">
             <div className={`hidden sm:flex rounded-full p-1 border ${isScrolled ? 'bg-gray-100 border-gray-200' : 'bg-black/20 backdrop-blur-md border-white/10'}`}>
@@ -223,23 +271,137 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <section ref={heroRef} className="min-h-screen flex items-center relative overflow-hidden bg-gradient-to-br from-black via-gray-900 to-black">
+      {/* HERO - AMÉLIORÉ */}
+      <section ref={heroRef} className="min-h-screen flex items-center relative overflow-hidden">
+        {/* Image de fond claire et visible */}
         <div className="absolute inset-0 z-0">
-          <img src="https://i.postimg.cc/G2jML17x/catalog-ai-1-compressed-1-Page-02.jpg" alt="Hero" className="w-full h-full object-cover opacity-40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+          <img
+            src={settings.hero_bg_image || "https://i.postimg.cc/G2jML17x/catalog-ai-1-compressed-1-Page-02.jpg"}
+            alt="Hero Background"
+            className="w-full h-full object-cover"
+          />
+          {/* Overlay plus léger pour garder l'image visible */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center w-full">
-          <div className={`${lang === 'ar' ? 'lg:text-right' : 'lg:text-left'} text-center`}>
-            <p className="text-[#C9A227] text-lg tracking-[0.3em] mb-6 uppercase">{t.heroSubtitle}</p>
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-8" style={{ fontFamily: 'Cinzel, serif' }}>{t.heroTitle} <span className="block text-[#C9A227]">{t.heroHighlight}</span></h1>
-            <p className="text-gray-300 text-lg max-w-xl mx-auto lg:mx-0 mb-10">{t.heroDesc}</p>
-            <a href="#collections" className="inline-block bg-[#C9A227] text-white px-8 py-4 rounded-full font-bold hover:bg-[#8B6914] transition-all">{t.discover}</a>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center w-full pt-20">
+          {/* Texte du Hero - Modifiable depuis l'admin */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className={`${lang === 'ar' ? 'lg:text-right' : 'lg:text-left'} text-center`}
+          >
+            <p className="text-[#C9A227] text-lg tracking-[0.3em] mb-6 uppercase font-bold">{heroText.subtitle}</p>
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-8" style={{ fontFamily: 'Cinzel, serif' }}>
+              {heroText.title_line1}
+              <span className="block text-[#C9A227] mt-2">{heroText.title_highlight}</span>
+            </h1>
+            <p className="text-gray-200 text-lg max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">{heroText.description}</p>
+            <a href="#collections" className="inline-block bg-[#C9A227] text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-[#8B6914] hover:scale-105 transition-all shadow-2xl shadow-[#C9A227]/30">
+              {heroText.button_text}
+            </a>
+          </motion.div>
+
+          {/* 3 Parfums avec animations au survol */}
+          <div className="hidden lg:flex justify-center items-center gap-6">
+            {heroPerfumes.map((parfum, index) => (
+              <motion.div
+                key={parfum.id}
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                onMouseEnter={() => setHoveredPerfume(index)}
+                onMouseLeave={() => setHoveredPerfume(null)}
+                onClick={() => { setSelectedPerfume(parfum); setQuantity(parfum.min_achat_ml); setManualQuantity('') }}
+                className={`relative cursor-pointer transition-all duration-500 ${hoveredPerfume === index
+                    ? 'scale-110 z-20'
+                    : hoveredPerfume !== null
+                      ? 'scale-95 opacity-70'
+                      : 'scale-100'
+                  }`}
+              >
+                <div className="relative group">
+                  {/* Glow effect au survol */}
+                  <div className={`absolute -inset-4 bg-[#C9A227]/30 rounded-3xl blur-xl transition-opacity duration-500 ${hoveredPerfume === index ? 'opacity-100' : 'opacity-0'}`}></div>
+
+                  {/* Image du parfum */}
+                  <div className="relative w-48 h-64 rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl">
+                    <img
+                      src={parfum.image_url_1 || 'https://via.placeholder.com/200x300'}
+                      alt={parfum.nom}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+
+                    {/* Overlay avec infos */}
+                    <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent flex flex-col justify-end p-4 transition-opacity duration-300 ${hoveredPerfume === index ? 'opacity-100' : 'opacity-0'}`}>
+                      <p className="text-white font-bold text-sm truncate">{parfum.nom}</p>
+                      <p className="text-[#C9A227] font-bold text-lg">{formatPrice(parfum.prix_eur)}/ml</p>
+                    </div>
+                  </div>
+
+                  {/* Badge catégorie */}
+                  <div className="absolute -top-2 -right-2 bg-[#C9A227] text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                    {parfum.categorie}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
-          <div className="hidden lg:flex justify-center">
-            <div className="relative">
-              <img src="https://i.postimg.cc/fR3gxpyw/catalog-ai-1-compressed-1-Page-01.jpg" alt="Main" className="w-96 rounded-3xl shadow-2xl border border-white/10" style={{ transform: `perspective(1000px) rotateY(${(mousePos.x - 50) * 0.1}deg) rotateX(${(mousePos.y - 50) * -0.1}deg)` }} />
-            </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60"
+        >
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        </motion.div>
+      </section>
+
+      {/* FILTRES PAR GENRE - Homme/Femme/Unisexe */}
+      <section className="py-8 bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-wrap justify-center gap-4">
+            <button
+              onClick={() => setSelectedGender('')}
+              className={`px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 ${selectedGender === ''
+                  ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                }`}
+            >
+              {t.all}
+            </button>
+            <button
+              onClick={() => setSelectedGender('Homme')}
+              className={`px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center gap-2 ${selectedGender === 'Homme'
+                  ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                }`}
+            >
+              <span>👔</span> {t.homme}
+            </button>
+            <button
+              onClick={() => setSelectedGender('Femme')}
+              className={`px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center gap-2 ${selectedGender === 'Femme'
+                  ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                }`}
+            >
+              <span>👗</span> {t.femme}
+            </button>
+            <button
+              onClick={() => setSelectedGender('Unisexe')}
+              className={`px-8 py-4 rounded-full font-bold text-sm uppercase tracking-widest transition-all duration-300 flex items-center gap-2 ${selectedGender === 'Unisexe'
+                  ? 'bg-[#C9A227] text-white shadow-lg shadow-[#C9A227]/30'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                }`}
+            >
+              <span>✨</span> {t.unisexe}
+            </button>
           </div>
         </div>
       </section>
@@ -276,21 +438,35 @@ export default function Home() {
 
           {/* Filters */}
           <div className="flex flex-wrap gap-4 justify-center mb-12">
-            <input type="text" placeholder={t.searchPlaceholder} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full max-w-sm px-6 py-3 rounded-full border border-gray-200 focus:border-[#C9A227] outline-none" />
-            <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} className="px-6 py-3 rounded-full border border-gray-200 bg-white outline-none">
+            <input
+              type="text"
+              placeholder={t.searchPlaceholder}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full max-w-sm px-6 py-3 rounded-full border border-gray-200 focus:border-[#C9A227] outline-none"
+            />
+            <select
+              value={selectedCategory}
+              onChange={e => setSelectedCategory(e.target.value)}
+              className="px-6 py-3 rounded-full border border-gray-200 bg-white outline-none"
+            >
               <option value="">{t.allCategories}</option>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <select value={selectedOccasion} onChange={e => setSelectedOccasion(e.target.value)} className="px-6 py-3 rounded-full border border-gray-200 bg-white outline-none">
-              <option value="">{t.allOccasions}</option>
-              {occasions.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           </div>
 
           {/* Products Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredPerfumes.map(p => (
-              <div key={p.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all cursor-pointer group" onClick={() => { setSelectedPerfume(p); setQuantity(p.min_achat_ml); setManualQuantity('') }}>
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -10 }}
+                className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all cursor-pointer group"
+                onClick={() => { setSelectedPerfume(p); setQuantity(p.min_achat_ml); setManualQuantity('') }}
+              >
                 <div className="relative h-80 overflow-hidden">
                   <img src={p.image_url_1 || 'https://via.placeholder.com/400'} alt={p.nom} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all"></div>
@@ -306,7 +482,7 @@ export default function Home() {
                   <p className="text-gray-500 text-sm line-clamp-2">{p.description}</p>
                   <p className="text-xs text-gray-400 mt-2">{t.stock}: {p.stock_ml}ml</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
@@ -317,8 +493,6 @@ export default function Home() {
           )}
         </div>
       </section>
-
-
 
       {/* FOOTER */}
       <footer className="bg-[#0A0A0A] text-white py-16 border-t border-white/5">
@@ -332,7 +506,12 @@ export default function Home() {
       {/* PRODUCT MODAL */}
       {selectedPerfume && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setSelectedPerfume(null)}>
-          <div className="bg-white rounded-[2rem] max-w-4xl w-full overflow-hidden flex flex-col md:flex-row" onClick={e => e.stopPropagation()}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-[2rem] max-w-4xl w-full overflow-hidden flex flex-col md:flex-row"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="md:w-1/2 h-80 md:h-auto relative">
               <img src={selectedPerfume.image_url_1} className="w-full h-full object-cover" alt={selectedPerfume.nom} />
               <button onClick={() => setSelectedPerfume(null)} className="absolute top-6 right-6 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl text-xl hover:scale-110 transition-all">✕</button>
@@ -346,8 +525,6 @@ export default function Home() {
               {/* Quantity Selector */}
               <div className="mb-8">
                 <p className="text-sm font-bold uppercase tracking-widest text-[#0A0A0A] mb-4">{t.quantity} (ml)</p>
-
-                {/* Manual Input */}
                 <div className="flex items-center gap-4 mb-4">
                   <input
                     type="number"
@@ -360,8 +537,6 @@ export default function Home() {
                   />
                   <span className="text-gray-500 font-bold">ml</span>
                 </div>
-
-                {/* Quick Select Buttons */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {[5, 10, 20, 30, 50, 100].filter(q => q >= selectedPerfume.min_achat_ml && q <= selectedPerfume.max_achat_ml).map(q => (
                     <button
@@ -373,8 +548,6 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-
-                {/* Price Display */}
                 <div className="flex items-center justify-between bg-gray-50 p-4 rounded-2xl">
                   <div>
                     <p className="text-sm text-gray-500">{t.total}</p>
@@ -386,9 +559,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <button onClick={() => addToCart(selectedPerfume, quantity)} disabled={selectedPerfume.stock_ml === 0} className="w-full bg-[#C9A227] text-white py-5 rounded-full font-bold text-lg hover:bg-[#8B6914] transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-4">{t.addToCart}</button>
-
               <button
                 onClick={() => {
                   const message = `Bonjour, je souhaite commander: ${selectedPerfume.nom} (${quantity}ml). Prix: ${formatPrice(selectedPerfume.prix_eur * quantity)}`
@@ -400,14 +571,20 @@ export default function Home() {
                 {t.orderWhatsapp}
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
       {/* CART MODAL */}
       {showCart && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex justify-end" onClick={() => setShowCart(false)}>
-          <div className="bg-white w-full max-w-md h-full shadow-2xl p-8 flex flex-col" onClick={e => e.stopPropagation()}>
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            className="bg-white w-full max-w-md h-full shadow-2xl p-8 flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-10">
               <h3 className="text-2xl font-bold tracking-widest" style={{ fontFamily: 'Cinzel, serif' }}>{t.cart}</h3>
               <button onClick={() => setShowCart(false)} className="text-2xl hover:scale-110 transition-all">✕</button>
@@ -452,7 +629,7 @@ export default function Home() {
                 </div>
               </>
             )}
-          </div>
+          </motion.div>
         </div>
       )}
 

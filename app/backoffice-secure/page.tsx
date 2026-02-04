@@ -19,7 +19,9 @@ import {
   Edit2,
   Save,
   Eye,
-  EyeOff
+  EyeOff,
+  Type,
+  Globe
 } from 'lucide-react'
 
 // Types
@@ -54,6 +56,17 @@ interface SiteSettings {
   taux_usd: number
   taux_fcfa: number
   maintenance_mode: boolean
+  hero_bg_image?: string
+}
+
+interface HeroText {
+  id?: number
+  language: 'fr' | 'en' | 'ar'
+  subtitle: string
+  title_line1: string
+  title_highlight: string
+  description: string
+  button_text: string
 }
 
 // Constantes
@@ -75,6 +88,12 @@ export default function AdminDashboard() {
   const [parfums, setParfums] = useState<Parfum[]>([])
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [editingParfum, setEditingParfum] = useState<Parfum | null>(null)
+  const [heroTexts, setHeroTexts] = useState<HeroText[]>([
+    { language: 'fr', subtitle: 'Parfums Haute Couture', title_line1: "L'Art de la", title_highlight: 'Séduction', description: "Découvrez notre collection exclusive de parfums de luxe.", button_text: 'Découvrir la Collection' },
+    { language: 'en', subtitle: 'Haute Couture Perfumes', title_line1: 'The Art of', title_highlight: 'Seduction', description: 'Discover our exclusive collection of luxury perfumes.', button_text: 'Discover Collection' },
+    { language: 'ar', subtitle: 'عطور الهوت كوتور', title_line1: 'فن', title_highlight: 'الإغراء', description: 'اكتشف مجموعتنا الحصرية من العطور الفاخرة.', button_text: 'اكتشف المجموعة' }
+  ])
+  const [selectedHeroLang, setSelectedHeroLang] = useState<'fr' | 'en' | 'ar'>('fr')
 
   // Form pour nouveau/edit parfum
   const [form, setForm] = useState({
@@ -130,7 +149,26 @@ export default function AdminDashboard() {
   // DATA - Chargement des données
   // ============================================
   const loadData = async () => {
-    await Promise.all([loadParfums(), loadSettings()])
+    await Promise.all([loadParfums(), loadSettings(), loadHeroTexts()])
+  }
+
+  const loadHeroTexts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hero_texts')
+        .select('*')
+
+      if (error) {
+        console.log('Table hero_texts non trouvée, utilisation des valeurs par défaut')
+        return
+      }
+
+      if (data && data.length > 0) {
+        setHeroTexts(data as HeroText[])
+      }
+    } catch (error) {
+      console.log('Erreur chargement hero texts:', error)
+    }
   }
 
   const loadParfums = async () => {
@@ -345,6 +383,44 @@ export default function AdminDashboard() {
   }
 
   // ============================================
+  // HERO TEXTS - Save
+  // ============================================
+  const handleSaveHeroTexts = async () => {
+    try {
+      for (const text of heroTexts) {
+        const { error } = await supabase
+          .from('hero_texts')
+          .upsert({
+            language: text.language,
+            subtitle: text.subtitle,
+            title_line1: text.title_line1,
+            title_highlight: text.title_highlight,
+            description: text.description,
+            button_text: text.button_text,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'language' })
+
+        if (error) throw error
+      }
+
+      setSaveMessage('Textes du hero sauvegardés !')
+      setTimeout(() => setSaveMessage(''), 2000)
+    } catch (error: any) {
+      setSaveMessage(`Erreur: ${error.message}`)
+    }
+  }
+
+  const updateHeroText = (lang: 'fr' | 'en' | 'ar', field: keyof HeroText, value: string) => {
+    setHeroTexts(prev => prev.map(t =>
+      t.language === lang ? { ...t, [field]: value } : t
+    ))
+  }
+
+  const getCurrentHeroText = () => {
+    return heroTexts.find(t => t.language === selectedHeroLang) || heroTexts[0]
+  }
+
+  // ============================================
   // HELPERS
   // ============================================
   const formatPrice = (priceEur: number, currency: string = 'EUR') => {
@@ -488,6 +564,7 @@ export default function AdminDashboard() {
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
           { id: 'products', label: 'Produits', icon: Package },
           { id: 'add', label: editingParfum ? 'Modifier' : 'Ajouter', icon: PlusCircle },
+          { id: 'content', label: 'Contenu Hero', icon: Type },
           { id: 'settings', label: 'Paramètres', icon: SettingsIcon },
         ].map((item) => (
           <button
@@ -497,8 +574,8 @@ export default function AdminDashboard() {
               setActiveTab(item.id)
             }}
             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all ${activeTab === item.id
-                ? 'bg-gradient-to-r from-[#C9A227] to-[#8B6914] text-white shadow-lg'
-                : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+              ? 'bg-gradient-to-r from-[#C9A227] to-[#8B6914] text-white shadow-lg'
+              : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
               }`}
           >
             <item.icon className="w-5 h-5" />
@@ -607,8 +684,8 @@ export default function AdminDashboard() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${p.stock_ml === 0 ? 'bg-red-100 text-red-600' :
-                        p.stock_ml < 30 ? 'bg-orange-100 text-orange-600' :
-                          'bg-green-100 text-green-600'
+                      p.stock_ml < 30 ? 'bg-orange-100 text-orange-600' :
+                        'bg-green-100 text-green-600'
                       }`}>
                       {p.stock_ml} ml
                     </span>
@@ -617,8 +694,8 @@ export default function AdminDashboard() {
                     <button
                       onClick={() => toggleDisponibilite(p)}
                       className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${p.est_disponible
-                          ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                         }`}
                     >
                       {p.est_disponible ? 'Disponible' : 'Indisponible'}
@@ -814,8 +891,8 @@ export default function AdminDashboard() {
                     type="button"
                     onClick={() => toggleOccasion(occ)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${form.occasions.includes(occ)
-                        ? 'bg-[#C9A227] text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-[#C9A227] text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
                     {occ}
@@ -1088,6 +1165,184 @@ export default function AdminDashboard() {
   )
 
   // ============================================
+  // RENDER - Content (Hero Texts)
+  // ============================================
+  const renderContent = () => {
+    const currentText = getCurrentHeroText()
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-8">
+        {saveMessage && (
+          <div className={`p-4 rounded-xl text-center font-bold ${saveMessage.includes('Erreur') ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+            {saveMessage}
+          </div>
+        )}
+
+        {/* Sélecteur de langue */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+          <h3 className="text-xl font-bold text-gray-800 mb-6" style={{ fontFamily: 'Cinzel, serif' }}>
+            <Globe className="inline w-6 h-6 mr-2 text-[#C9A227]" />
+            Textes du Hero - Multilingue
+          </h3>
+          <p className="text-gray-500 text-sm mb-6">Modifiez les textes affichés sur la page d'accueil pour chaque langue.</p>
+
+          <div className="flex gap-2 mb-8">
+            {[
+              { code: 'fr' as const, label: 'Français', flag: '🇫🇷' },
+              { code: 'en' as const, label: 'English', flag: '🇬🇧' },
+              { code: 'ar' as const, label: 'العربية', flag: '🇸🇦' }
+            ].map(lang => (
+              <button
+                key={lang.code}
+                onClick={() => setSelectedHeroLang(lang.code)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${selectedHeroLang === lang.code
+                  ? 'bg-[#C9A227] text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+              >
+                <span className="text-xl">{lang.flag}</span>
+                {lang.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Formulaire des textes */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400">
+                Sous-titre (ex: "Parfums Haute Couture")
+              </label>
+              <input
+                type="text"
+                className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#C9A227] outline-none transition-all"
+                value={currentText?.subtitle || ''}
+                onChange={e => updateHeroText(selectedHeroLang, 'subtitle', e.target.value)}
+                dir={selectedHeroLang === 'ar' ? 'rtl' : 'ltr'}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-400">
+                  Titre ligne 1 (ex: "L'Art de la")
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#C9A227] outline-none transition-all"
+                  value={currentText?.title_line1 || ''}
+                  onChange={e => updateHeroText(selectedHeroLang, 'title_line1', e.target.value)}
+                  dir={selectedHeroLang === 'ar' ? 'rtl' : 'ltr'}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-400">
+                  Mot en surbrillance (ex: "Séduction")
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#C9A227] outline-none transition-all text-[#C9A227] font-bold"
+                  value={currentText?.title_highlight || ''}
+                  onChange={e => updateHeroText(selectedHeroLang, 'title_highlight', e.target.value)}
+                  dir={selectedHeroLang === 'ar' ? 'rtl' : 'ltr'}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400">
+                Description
+              </label>
+              <textarea
+                rows={3}
+                className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#C9A227] outline-none transition-all resize-none"
+                value={currentText?.description || ''}
+                onChange={e => updateHeroText(selectedHeroLang, 'description', e.target.value)}
+                dir={selectedHeroLang === 'ar' ? 'rtl' : 'ltr'}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400">
+                Texte du bouton
+              </label>
+              <input
+                type="text"
+                className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#C9A227] outline-none transition-all"
+                value={currentText?.button_text || ''}
+                onChange={e => updateHeroText(selectedHeroLang, 'button_text', e.target.value)}
+                dir={selectedHeroLang === 'ar' ? 'rtl' : 'ltr'}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Image de fond du Hero */}
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+          <h3 className="text-xl font-bold text-gray-800 mb-6" style={{ fontFamily: 'Cinzel, serif' }}>
+            <ImageIcon className="inline w-6 h-6 mr-2 text-[#C9A227]" />
+            Image de fond du Hero
+          </h3>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-widest text-gray-400">
+              URL de l'image de fond
+            </label>
+            <input
+              type="url"
+              placeholder="https://exemple.com/image.jpg"
+              className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-[#C9A227] outline-none transition-all"
+              value={settings?.hero_bg_image || ''}
+              onChange={e => setSettings(s => s ? { ...s, hero_bg_image: e.target.value } : s)}
+            />
+            <p className="text-xs text-gray-400">Utilisez postimg.cc ou un autre hébergeur d'images pour obtenir l'URL</p>
+          </div>
+
+          {settings?.hero_bg_image && (
+            <div className="mt-4">
+              <img
+                src={settings.hero_bg_image}
+                alt="Aperçu"
+                className="w-full h-48 object-cover rounded-xl"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Aperçu */}
+        <div className="bg-gradient-to-br from-gray-900 to-black p-8 rounded-3xl text-white">
+          <h4 className="text-xs font-bold uppercase tracking-widest text-[#C9A227] mb-4">Aperçu</h4>
+          <p className="text-[#C9A227] text-sm tracking-[0.2em] mb-2 uppercase">{currentText?.subtitle}</p>
+          <h2 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Cinzel, serif' }}>
+            {currentText?.title_line1} <span className="text-[#C9A227]">{currentText?.title_highlight}</span>
+          </h2>
+          <p className="text-gray-300 text-sm mb-4">{currentText?.description}</p>
+          <span className="inline-block bg-[#C9A227] text-white px-4 py-2 rounded-full text-xs font-bold">
+            {currentText?.button_text}
+          </span>
+        </div>
+
+        {/* Boutons de sauvegarde */}
+        <div className="flex gap-4 justify-end">
+          <button
+            onClick={handleSaveHeroTexts}
+            className="flex items-center gap-3 bg-gradient-to-r from-[#C9A227] to-[#8B6914] text-white px-8 py-4 rounded-2xl font-bold hover:shadow-xl hover:shadow-[#C9A227]/20 transition-all uppercase tracking-widest text-xs"
+          >
+            <Save className="w-5 h-5" />
+            Sauvegarder les textes
+          </button>
+          <button
+            onClick={handleSaveSettings}
+            className="flex items-center gap-3 bg-gray-800 text-white px-8 py-4 rounded-2xl font-bold hover:bg-gray-700 transition-all uppercase tracking-widest text-xs"
+          >
+            <Save className="w-5 h-5" />
+            Sauvegarder l'image
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================
   // RENDER - Main
   // ============================================
   return (
@@ -1101,12 +1356,14 @@ export default function AdminDashboard() {
             <h2 className="text-sm font-bold tracking-widest text-[#C9A227] uppercase">
               {activeTab === 'dashboard' ? 'Vue d\'ensemble' :
                 activeTab === 'products' ? 'Inventaire' :
-                  activeTab === 'add' ? (editingParfum ? 'Modification' : 'Création') : 'Configuration'}
+                  activeTab === 'add' ? (editingParfum ? 'Modification' : 'Création') :
+                    activeTab === 'content' ? 'Page d\'accueil' : 'Configuration'}
             </h2>
             <h1 className="text-2xl font-bold text-gray-800" style={{ fontFamily: 'Cinzel, serif' }}>
               {activeTab === 'dashboard' ? 'Tableau de bord' :
                 activeTab === 'products' ? 'Gestion des produits' :
-                  activeTab === 'add' ? (editingParfum ? `Modifier: ${editingParfum.nom}` : 'Nouveau parfum') : 'Paramètres'}
+                  activeTab === 'add' ? (editingParfum ? `Modifier: ${editingParfum.nom}` : 'Nouveau parfum') :
+                    activeTab === 'content' ? 'Contenu du Hero' : 'Paramètres'}
             </h1>
           </div>
           <div className="flex items-center gap-4">
@@ -1125,6 +1382,7 @@ export default function AdminDashboard() {
           {activeTab === 'dashboard' && renderDashboard()}
           {activeTab === 'products' && renderProducts()}
           {activeTab === 'add' && renderAddProduct()}
+          {activeTab === 'content' && renderContent()}
           {activeTab === 'settings' && renderSettings()}
         </main>
       </div>
